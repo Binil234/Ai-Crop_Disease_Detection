@@ -1,83 +1,78 @@
-🌿 AI Crop Disease Detector
+**🌿 Crop Disease Detection using Deep Learning & Flask**
 
-An advanced deep-learning–powered system that detects plant leaf diseases with high accuracy using computer vision and TensorFlow.
+An AI-powered web application that detects plant leaf diseases using a TensorFlow deep learning model (MobileNetV2) and provides prevention & treatment suggestions.
+Built with Flask for the backend and HTML/CSS for a clean and interactive user interface.
 
-🧠 Overview
+**🚀 Features**
 
-This project uses a custom-trained MobileNetV2 model fine-tuned on the PlantVillage dataset to automatically identify crop diseases from leaf images.
-It provides instant predictions, disease confidence levels, and detailed prevention/treatment guidance through an interactive web interface built with Streamlit.
+🧠 Deep Learning Model (97% Accuracy) — identifies 15+ crop leaf diseases.
 
-Farmers, agronomists, and agricultural researchers can use it to monitor crop health, reduce losses, and take early preventive actions against infections.
+🌱 Flask Web App — lightweight, fast, and easy to deploy locally or on cloud.
 
-🚀 Features
+🎨 HTML/CSS Frontend — intuitive design for smooth user experience.
 
-🌱 Detects 15+ common crop diseases (Tomato, Potato, Pepper, Apple, Corn, Grape, etc.)
+📸 Image Upload Interface — upload a leaf photo to detect the disease instantly.
 
-🧩 Trained using heavy real-time data augmentation and class-balanced weighting
+💊 Smart Insights — prevention and treatment measures for each detected disease.
 
-📈 Achieved ~97% validation accuracy on test data
+**🧩 Tech Stack**
 
-🧠 Includes top-3 prediction probabilities for better transparency
+Frontend: HTML, CSS
 
-💊 Provides disease description, symptoms, prevention, and treatment tips
+Backend: Flask (Python)
 
-💻 Integrated Streamlit web UI for easy drag-and-drop leaf analysis
+AI/Model: TensorFlow, Keras (MobileNetV2)
 
-🧾 Compatible with TensorFlow 2.x / Keras
+Tools: NumPy, Pillow, ImageDataGenerator
 
-🧪 Model Highlights
-Phase	Technique	Accuracy	Notes
-Phase 1	Transfer Learning (MobileNetV2)	~41%	Baseline
-Phase 2	Fine-Tuning (Unfrozen Top Layers)	~46%	Improved Stability
-Phase 3	Heavy Augmentation + Class Weights	~97%	Final Trained Model
-📸 Web App Demo
+**⚙️ How It Works**
 
-The interface allows users to upload a leaf image and instantly view:
+User uploads a leaf image through the web interface.
 
-Predicted disease and confidence percentage
+Flask backend processes and feeds the image into the trained deep learning model.
 
-Short disease description
+The model predicts the disease with confidence levels.
 
-Symptom checklist
+The result page displays the top prediction with detailed prevention and treatment info.
 
-Prevention & treatment steps
+**📸 Demo Output**
+🏆 Tomato Late Blight  
+Confidence: 96.2%  
+Prevention: Use resistant varieties, apply fungicides, remove infected plants.  
+Treatment: Copper fungicides or Mancozeb spray.  
 
-🧰 Tech Stack
+**🧠 Model Training Highlights**
 
-Python 3.10+
+Base model: MobileNetV2
 
-TensorFlow / Keras
+Data Augmentation: Heavy rotation, flips, zoom, brightness
 
-NumPy, Pillow
+Optimization: Adam optimizer + Label smoothing
 
-Stre (for UI)
+Result: Achieved 97.6% validation accuracy
 
-Matplotlib / Pandas (for analysis)
+**🧰 Setup Instructions**
+# 1️⃣ Clone the repository
+git clone https://github.com/yourusername/crop-disease-detection.git
 
-⚙️ How It Works
+# 2️⃣ Install dependencies
+pip install -r requirements.txt
 
-Upload a crop leaf image (JPG/PNG).
+# 3️⃣ Run Flask app
+python app.py
 
-The model preprocesses and classifies it among trained disease classes.
+# 4️⃣ Open in browser
+http://127.0.0.1:5000
 
-The app displays the top predictions along with actionable insights.
+**📬 Future Enhancements**
 
-🌾 Real-World Impact
+🌾 Add more crop categories
 
-This tool empowers farmers and agricultural researchers to:
+📱 Build responsive mobile UI
 
-Detect diseases before they spread.
+☁️ Deploy on AWS / Render / Heroku
 
-Reduce pesticide misuse through targeted treatment.
+**🧑‍💻 Author**
 
-Contribute to sustainable agriculture and food security.
-
-🧠 Future Improvements
-
-🌍 Add multilingual support for rural deployment.
-
-📱 Develop a mobile app version using TensorFlow Lite.
-
-🧩 Incorporate satellite & climate data for environmental correlation.
-
-🧬 Expand to more crops beyond the PlantVillage dataset.
+Binil John
+Deep Learning | Computer Vision | Flask Web Developer
