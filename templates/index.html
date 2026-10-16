@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌱 Crop Disease Detector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-box:hover {
+            border-color: #764ba2;
+            background: #f0f1ff;
+            transform: translateY(-2px);
+        }
+
+        .upload-box.dragover {
+            background: #e8e9ff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .upload-subtext {
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-section {
+            display: none;
+            margin: 30px 0;
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .image-preview {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .image-preview img {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .results-panel {
+            flex: 1;
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .result-header {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .disease-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .confidence-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            transition: width 1s ease;
+        }
+
+        .info-section {
+            margin-top: 30px;
+        }
+
+        .info-box {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-content {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .info-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            margin-top: 20px;
+            background: #6c757d;
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .healthy-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .diseased-badge {
+            background: #dc3545;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                flex-direction: column;
+            }
+            
+            .image-preview {
+                max-width: 100%;
+            }
+            
+            header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌱 AI Crop Disease Detector</h1>
+            <p>Upload a leaf image for instant disease detection and treatment recommendations</p>
+        </header>
+
+        <div class="main-card">
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Click to upload or drag & drop</div>
+                    <div class="upload-subtext">Supports JPG, PNG (Max 5MB)</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing plant health...</p>
+            </div>
+
+            <div class="preview-section" id="previewSection">
+                <div class="preview-container">
+                    <div class="image-preview">
+                        <img id="previewImage" src="" alt="Uploaded leaf">
+                    </div>
+                    
+                    <div class="results-panel">
+                        <div class="result-header">
+                            <span>🔍</span>
+                            <span>Analysis Results</span>
+                        </div>
+                        
+                        <div id="statusBadge"></div>
+                        <div class="disease-name" id="diseaseName"></div>
+                        
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill" style="width: 0%">
+                                <span id="confidenceText">0%</span>
+                            </div>
+                        </div>
+
+                        <div class="info-section" id="infoSection"></div>
+                        
+                        <button class="btn reset-btn" onclick="resetApp()">Analyze Another Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Disease information database
+        const diseaseDatabase = {
+            'Tomato_Late_blight': {
+                name: 'Tomato Late Blight',
+                description: 'Devastating fungal disease caused by Phytophthora infestans',
+                symptoms: 'Water-soaked spots on leaves, white mold, brown stem lesions',
+                prevention: [
+                    'Use resistant varieties',
+                    'Ensure proper spacing for air circulation',
+                    'Apply fungicides during wet weather',
+                    'Remove infected plants immediately',
+                    'Avoid overhead irrigation'
+                ],
+                treatment: [
+                    'Apply copper-based fungicides',
+                    'Use Mancozeb or Chlorothalonil',
+                    'Remove severely infected plants'
+                ]
+            },
+            'Tomato_Early_blight': {
+                name: 'Tomato Early Blight',
+                description: 'Fungal disease caused by Alternaria solani',
+                symptoms: 'Dark spots with concentric rings, yellowing around spots',
+                prevention: [
+                    'Practice crop rotation (3-4 years)',
+                    'Use mulch to prevent soil splash',
+                    'Remove lower leaves touching ground',
+                    'Ensure adequate spacing',
+                    'Water at base of plants'
+                ],
+                treatment: [
+                    'Apply Chlorothalonil fungicides',
+                    'Use organic neem oil spray',
+                    'Remove infected leaves promptly'
+                ]
+            },
+            'Potato_Late_blight': {
+                name: 'Potato Late Blight',
+                description: 'Same pathogen as tomato late blight',
+                symptoms: 'Brown-black lesions, white fungal growth in humidity',
+                prevention: [
+                    'Plant certified disease-free seeds',
+                    'Hill soil around plants',
+                    'Use resistant varieties',
+                    'Monitor weather conditions',
+                    'Destroy cull piles'
+                ],
+                treatment: [
+                    'Apply systemic fungicides',
+                    'Destroy infected plants',
+                    'Harvest 2 weeks after killing vines'
+                ]
+            },
+            'Healthy': {
+                name: 'Healthy Plant',
+                description: 'Plant shows no signs of disease',
+                symptoms: 'Vibrant green leaves, normal growth',
+                prevention: [
+                    'Continue regular monitoring',
+                    'Maintain proper nutrition',
+                    'Ensure adequate watering',
+                    'Practice good garden hygiene'
+                ],
+                treatment: ['No treatment needed - plant is healthy!']
+            }
+        };
+
+        // DOM elements
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+
+        // Event listeners
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processImage(file);
+            }
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        }
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                analyzeImage();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeImage() {
+            // Show loading
+            loading.style.display = 'block';
+            previewSection.style.display = 'none';
+
+            // Simulate AI processing (in real app, this would call your model)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Simulate prediction (replace with actual TensorFlow.js model prediction)
+            const predictions = simulatePrediction();
+            
+            displayResults(predictions);
+        }
+
+        function simulatePrediction() {
+            // Demo predictions - replace with actual model inference
+            const diseases = Object.keys(diseaseDatabase);
+            const randomDisease = diseases[Math.floor(Math.random() * diseases.length)];
+            const confidence = Math.random() * 30 + 70; // 70-100%
+            
+            return {
+                disease: randomDisease,
+                confidence: confidence
+            };
+        }
+
+        function displayResults(prediction) {
+            loading.style.display = 'none';
+            previewSection.style.display = 'block';
+
+            const diseaseInfo = diseaseDatabase[prediction.disease];
+            const isHealthy = prediction.disease === 'Healthy';
+
+            // Status badge
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.innerHTML = isHealthy ? 
+                '<div class="healthy-badge">✓ Healthy</div>' : 
+                '<div class="diseased-badge">⚠ Disease Detected</div>';
+
+            // Disease name
+            document.getElementById('diseaseName').textContent = diseaseInfo.name;
+
+            // Confidence bar
+            setTimeout(() => {
+                document.getElementById('confidenceFill').style.width = prediction.confidence + '%';
+                document.getElementById('confidenceText').textContent = 
+                    Math.round(prediction.confidence) + '% Confidence';
+            }, 100);
+
+            // Info sections
+            const infoSection = document.getElementById('infoSection');
+            infoSection.innerHTML = `
+                <div class="info-box">
+                    <div class="info-title">📋 Description</div>
+                    <div class="info-content">${diseaseInfo.description}</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">🔍 Symptoms</div>
+                    <div class="info-content">${diseaseInfo.symptoms}</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">🛡️ Prevention</div>
+                    <div class="info-content">
+                        <ul class="info-list">
+                            ${diseaseInfo.prevention.map(p => `<li>${p}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">💊 Treatment</div>
+                    <div class="info-content">
+                        <ul class="info-list">
+                            ${diseaseInfo.treatment.map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetApp() {
+            previewSection.style.display = 'none';
+            fileInput.value = '';
+        }
+
+        // Initialize - show demo message
+        console.log('🌱 Crop Disease Detector Ready!');
+        console.log('Note: This demo uses simulated predictions.');
+        console.log('To use real predictions, integrate your trained TensorFlow model.');
+    </script>
+</body>
+</html>

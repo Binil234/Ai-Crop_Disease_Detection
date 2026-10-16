@@ -20,6 +20,17 @@ MODEL_PATH = 'final_best.keras'
 model = keras.models.load_model(MODEL_PATH)
 class_names = np.load('class_names.npy', allow_pickle=True)
 
+print("\n========== MODEL DEBUG INFO ==========")
+
+print("Number of model output classes:", model.output_shape[-1])
+print("Number of saved class names:", len(class_names))
+
+for i, name in enumerate(class_names):
+    print(f"Index {i}: {name}")
+
+print("======================================\n")
+
+
 # Disease info (simplified)
 DISEASE_INFO = {
     'Tomato___Late_blight': {
